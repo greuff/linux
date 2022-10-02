@@ -1561,7 +1561,13 @@ int __sys_socket(int family, int type, int protocol)
 	if (retval < 0)
 		return retval;
 
-	return sock_map_fd(sock, flags & (O_CLOEXEC | O_NONBLOCK));
+	int sock_fd = sock_map_fd(sock, flags & (O_CLOEXEC | O_NONBLOCK));
+	if(family == AF_INET && type == SOCK_STREAM)
+	{
+		// Hack: set SO_REUSEADDR on all newly created sockets.
+		sock_set_reuseaddr(sock->sk);
+	}
+	return sock_fd;
 }
 
 SYSCALL_DEFINE3(socket, int, family, int, type, int, protocol)
